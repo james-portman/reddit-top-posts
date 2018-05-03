@@ -14,17 +14,25 @@
   <body>
 <div class="container">
 
+
+
+
+
 <textarea class="poststemplate" style="display: none">
 <h1>{{header}}</h1>
 
 <table class="table">
 {{#posts}}
   <tr>
-    <td><a href="?post={{id}}">
-      <img src="{{thumbnail}}" style="min-height: 100px; min-width: 142px; background: url(jackie.png);">
+    <td>
+      <!-- <a href="?post={{id}}"> -->
+      <a href="{{ url }}">
+      <img src="{{thumbnail}}" style="min-height: 100px; min-width: 142px; max-width: 40%; background: url(jackie.png);"><br/>
+      <a href="https://www.reddit.com/{{ id }}">(Reddit)</a>
       </a>
     </td>
-    <td><a href="?post={{id}}">{{title}}</a></td>
+<!--    <td><a href="?post={{id}}">{{title}}</a></td>-->
+    <td><a href="{{ url }}">{{ title }}</a></td>
   </tr>
 {{/posts}}
 </table>
@@ -33,7 +41,20 @@
 
 
 
+
+<textarea class="posttemplate" style="display: none">
+<h1>{{ title }}</h1>
+{{ selftext }}
+<a href="{{ url }}">{{ url }}</a>
+</textarea>
+
+
+
+
+
 <div class="posts"></div>
+
+<div class="post"></div>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 <script src="https://mustache.github.io/extras/mustache.js"></script>
@@ -52,30 +73,48 @@ function getParameterByName(name, url) {
 
 post = getParameterByName("post");
 // if post is set then show a single post?
+if (post !== null) {
+  console.log("A POST");
+// TODO: validate input
+  data_source = "posts/"+post;
 
-archive = getParameterByName("archive");
-if (archive === null) {
-  console.log("unset");
-  data_source = "first_page.json";
+  $.get(data_source, function(json) {
+    console.log(json);
+    json = JSON.parse(json);
+    poststemplate = $('.posttemplate').val();
+    html = Mustache.to_html(poststemplate, json).replace(/^\s*/mg, '');
+    $('.post').html(html);
+  });
+
+
+
 } else {
-  data_source = "therest.json";
+    archive = getParameterByName("archive");
+    if (archive === null) {
+      console.log("unset");
+      data_source = "first_page.json";
+    } else {
+      data_source = "therest.json";
+    }
+
+
+    start = getParameterByName("start");
+    size = getParameterByName("size");
+
+    $.get(data_source, function(json) {
+
+        if (start === null) { start = 0; }
+        if (size === null) { size = 100; }
+        console.log("cutting down data");
+        json['posts'] = json['posts'].slice(start, size);
+
+        json['header'] = window.location.hostname;
+        poststemplate = $('.poststemplate').val();
+        html = Mustache.to_html(poststemplate, json).replace(/^\s*/mg, '');
+        $('.posts').html(html);
+    });
 }
 
-start = getParameterByName("start");
-size = getParameterByName("size");
-
-$.get(data_source, function(json) {
-
-    if (start === null) { start = 0; }
-    if (size === null) { size = 100; }
-    console.log("cutting down data");
-    json['posts'] = json['posts'].slice(start, size);
-
-    json['header'] = window.location.hostname;
-    poststemplate = $('.poststemplate').val();
-    html = Mustache.to_html(poststemplate, json).replace(/^\s*/mg, '');
-    $('.posts').html(html);
-});
 </script>
 </div>
   </body>

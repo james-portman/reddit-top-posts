@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+
+
+    <title>omgwtf.click</title>
+  </head>
+  <body>
+<div class="container">
+
+<textarea class="poststemplate" style="display: none">
+<h1>{{header}}</h1>
+
+<table class="table">
+{{#posts}}
+  <tr>
+    <td><a href="/post/{{id}}">
+      <img src="{{thumbnail}}" style="min-height: 100px; min-width: 142px; background: url(/jackie.png);">
+      </a>
+    </td>
+    <td><a href="/post/{{id}}">{{title}}</a></td>
+  </tr>
+{{/posts}}
+</table>
+
+</textarea>
+
+
+
+<div class="posts"></div>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="https://mustache.github.io/extras/mustache.js"></script>
+<script>
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+
+post = getParameterByName("post");
+// if post is set then show a single post?
+
+archive = getParameterByName("archive");
+if (archive === null) {
+  console.log("unset");
+  data_source = "/first_page.json";
+} else {
+  data_source = "/therest.json";
+}
+
+start = getParameterByName("start");
+size = getParameterByName("size");
+
+$.get(data_source, function(json) {
+
+    if (start === null) { start = 0; }
+    if (size === null) { size = 100; }
+    console.log("cutting down data");
+    json['posts'] = json['posts'].slice(start, size);
+
+    json['header'] = window.location.hostname;
+    poststemplate = $('.poststemplate').val();
+    html = Mustache.to_html(poststemplate, json).replace(/^\s*/mg, '');
+    $('.posts').html(html);
+});
+</script>
+</div>
+  </body>
+</html>
